@@ -33,10 +33,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Copy package manifests and install production dependencies
+# Copy package manifests and install all dependencies (including dev for build tools)
 # Layer is cached unless package.json changes
 COPY package*.json ./
-RUN npm install --omit=dev --no-audit --no-fund --ignore-scripts \
+RUN npm install --no-audit --no-fund --ignore-scripts \
     && npm cache clean --force
 
 # Download and extract Camoufox browser binary
@@ -70,6 +70,13 @@ COPY --chown=node:node main.js ./
 COPY --chown=node:node src ./src
 COPY --chown=node:node configs ./configs
 COPY --chown=node:node scripts ./scripts
+COPY --chown=node:node views ./views
+
+# Build CSS files from LESS sources
+RUN npm run build:css
+
+# Remove dev dependencies after build to reduce image size
+RUN npm prune --omit=dev && npm cache clean --force
 
 # Switch to non-root user for enhanced security
 USER node
