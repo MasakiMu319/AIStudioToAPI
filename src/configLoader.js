@@ -56,16 +56,16 @@ class ConfigLoader {
             config.streamingMode = process.env.STREAMING_MODE;
         if (process.env.FAILURE_THRESHOLD)
             config.failureThreshold
-                = parseInt(process.env.FAILURE_THRESHOLD, 10) ?? config.failureThreshold;
+                = Math.max(0, parseInt(process.env.FAILURE_THRESHOLD, 10)) ?? config.failureThreshold;
         if (process.env.SWITCH_ON_USES)
             config.switchOnUses
-                = parseInt(process.env.SWITCH_ON_USES, 10) ?? config.switchOnUses;
+                = Math.max(0, parseInt(process.env.SWITCH_ON_USES, 10)) ?? config.switchOnUses;
         if (process.env.MAX_RETRIES)
             config.maxRetries
                 = Math.max(1, parseInt(process.env.MAX_RETRIES, 10)) || config.maxRetries;
         if (process.env.RETRY_DELAY)
             config.retryDelay
-                = parseInt(process.env.RETRY_DELAY, 10) || config.retryDelay;
+                = Math.max(50, parseInt(process.env.RETRY_DELAY, 10)) || config.retryDelay;
         if (process.env.CAMOUFOX_EXECUTABLE_PATH)
             config.browserExecutablePath = process.env.CAMOUFOX_EXECUTABLE_PATH;
         if (process.env.API_KEYS) {
