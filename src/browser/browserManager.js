@@ -230,7 +230,7 @@ class BrowserManager {
                 currentUrl.includes("accounts.google.com")
                 || currentUrl.includes("ServiceLogin")
                 || pageTitle.includes("Sign in")
-                || pageTitle.includes("Sign in")
+                || pageTitle.includes("登录")
             ) {
                 throw new Error(
                     "🚨 Cookie expired/invalid! Browser was redirected to Google login page. Please re-extract storageState."

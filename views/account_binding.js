@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => {
                 console.error('Error saving auth file:', error);
-                alert('An error occurred while saving the auth file.');
+                alert('An error occurred while saving the auth file: ' + error.message + '.');
                 saveButton.disabled = false;
                 saveButton.textContent = 'Save and Close Session';
             });

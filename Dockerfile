@@ -32,7 +32,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xvfb \
     x11vnc \
     websockify \
-    novnc \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 

@@ -555,7 +555,7 @@ class WebRoutes {
             this.logger.info("[VNC] VNC server is ready.");
 
             this.logger.info(`[VNC] Starting websockify on port ${websockifyPort}...`);
-            const websockify = spawn("websockify", ["--web", "/usr/share/novnc", String(websockifyPort), `localhost:${vncPort}`]);
+            const websockify = spawn("websockify", [String(websockifyPort), `localhost:${vncPort}`]);
             websockify.stdout.on("data", data => this.logger.info(`[websockify] ${data.toString()}`));
             websockify.stderr.on("data", data => {
                 const msg = data.toString();
@@ -740,11 +740,7 @@ class WebRoutes {
         } catch (error) {
             this.logger.error(`[VNC] Failed to save auth file: ${error.message}`);
             res.status(500)
-                .json({ error: "Failed to save auth file" });
-            setTimeout(() => {
-                this.logger.info("[VNC] Cleaning up VNC session after error...");
-                this._cleanupVncSession("save_error");
-            }, 500);
+                .json({ error: error.message });
         }
     }
 
