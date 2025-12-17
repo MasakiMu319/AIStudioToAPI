@@ -21,6 +21,12 @@ let currentLang = (() => {
     return supportedLangs.has(browserLang) ? browserLang : fallbackLang;
 })();
 
+// Reactive state for Vue components
+const state = {
+    lang: currentLang,
+    version: 0,
+};
+
 const normalizeLang = lang => (supportedLangs.has(lang) ? lang : fallbackLang);
 
 const loadLocale = async lang => {
@@ -29,7 +35,7 @@ const loadLocale = async lang => {
         return localesCache[normalized];
     }
     try {
-        const res = await fetch(`/locales/${normalized}.json`, { cache: 'no-cache' });
+        const res = await fetch(`/locales/${normalized}.json`);
         if (!res.ok) {
             throw new Error(`Failed to load locale ${normalized}`);
         }
@@ -85,10 +91,15 @@ const notifyListeners = lang => {
 const setLang = async lang => {
     const normalized = normalizeLang(lang);
     currentLang = normalized;
+    state.lang = normalized;
+    state.version++;
+
     localStorage.setItem('lang', normalized);
     await loadLocale(normalized);
+
     applyDomTranslations(normalized);
     notifyListeners(normalized);
+
     return normalized;
 };
 
@@ -124,6 +135,7 @@ const I18n = {
     isInitialized: () => initialized,
     onChange,
     setLang,
+    state,
     t,
     toggleLang,
 };

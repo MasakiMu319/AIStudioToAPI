@@ -7,7 +7,7 @@
 -->
 
 <template>
-    <div class="status-app">
+    <div class="status-page">
         <el-affix
             :offset="20"
             position="bottom"
@@ -70,7 +70,7 @@
             </div>
         </el-affix>
 
-        <div class="container">
+        <div class="status-container">
             <button
                 class="desktop-btn lang-switcher"
                 :title="t('switchLanguage')"
@@ -280,14 +280,21 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, watch, watchEffect } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from "vue";
 import { useRouter } from "vue-router";
 import { ElMessage, ElMessageBox, ElNotification } from "element-plus";
 import I18n from "../utils/i18n";
-import "../styles/status.less";
 
 const router = useRouter();
-const t = I18n.t;
+
+// Create reactive version counter
+const langVersion = ref(0);
+
+// Translation function that tracks language changes
+const t = (key, options) => {
+    langVersion.value; // Access to track changes
+    return I18n.t(key, options);
+};
 
 const state = reactive({
     accountDetails: [],
@@ -677,17 +684,15 @@ const toggleLanguage = async () => {
 };
 
 onMounted(() => {
-    updateContent().finally(scheduleNextUpdate);
-});
-
-watch(
-    () => I18n.state.lang,
-    () => {
+    // Listen for language changes
+    I18n.onChange(() => {
+        langVersion.value++;
         if (state.logCount === 0) {
             state.logs = t("loading");
         }
-    }
-);
+    });
+    updateContent().finally(scheduleNextUpdate);
+});
 
 onBeforeUnmount(() => {
     isActive = false;
@@ -700,3 +705,276 @@ watchEffect(() => {
     document.title = t("statusTitle");
 });
 </script>
+
+<style lang="less" scoped>
+@import '../styles/variables.less';
+
+.status-page {
+    min-height: 100vh;
+    padding: 3em 0;
+}
+
+.status-container {
+    background: @background-white;
+    border-radius: @border-radius-xl;
+    box-shadow: @shadow-light;
+    margin: 0 auto;
+    max-width: @container-max-width;
+    padding: 1em 2em 2em 2em;
+    position: relative;
+}
+
+h1,
+h2 {
+    border-bottom: 2px solid @border-light;
+    color: @text-primary;
+    padding-bottom: 0.5em;
+}
+
+pre {
+    background: @dark-background;
+    border-radius: @border-radius-md;
+    color: @dark-text;
+    font-size: @font-size-large;
+    line-height: 1.6;
+    padding: 1.5em;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+#log-container {
+    font-size: @font-size-small;
+    max-height: @log-container-max-height;
+    overflow-y: auto;
+}
+
+.status-ok {
+    color: @success-color;
+    font-weight: bold;
+}
+
+.status-error {
+    color: @error-color;
+    font-weight: bold;
+}
+
+.label {
+    display: inline-block;
+    width: 220px;
+}
+
+.dot {
+    animation: blink 1s infinite alternate;
+    background-color: #bbb;
+    border-radius: @border-radius-circle;
+    display: inline-block;
+    height: 10px;
+    margin-left: @spacing-sm;
+    vertical-align: middle;
+    width: 10px;
+
+    &.status-running {
+        background-color: @success-color;
+    }
+
+    &.status-error {
+        background-color: @error-color;
+    }
+}
+
+@keyframes blink {
+    from {
+        opacity: 0.3;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.action-group {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: @spacing-md;
+
+    button,
+    select {
+        align-items: center;
+        border: 1px solid @border-color;
+        border-radius: @border-radius-md;
+        box-sizing: border-box;
+        cursor: pointer;
+        display: inline-flex;
+        font-size: @font-size-base;
+        justify-content: center;
+        line-height: 1.5;
+        min-height: @button-min-height;
+        padding: @spacing-sm @spacing-md;
+        transition: background-color @transition-normal;
+        white-space: nowrap;
+
+        &:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+    }
+
+    button {
+        background: transparent;
+        border: none;
+        color: @text-secondary;
+        min-height: auto;
+        padding: @spacing-xs;
+
+        svg {
+            display: block;
+        }
+
+        &:hover:not(:disabled) {
+            color: @primary-color;
+            transform: scale(1.1);
+        }
+
+        &:disabled {
+            opacity: 0.5;
+        }
+
+        // Delete button uses error color on hover
+        &:last-child:hover:not(:disabled) {
+            color: @error-color;
+        }
+    }
+}
+
+// Desktop buttons (original position in container)
+.desktop-btn {
+    align-items: center;
+    background: transparent;
+    border: none;
+    color: @text-secondary;
+    cursor: pointer;
+    display: none; // Hidden on mobile by default
+    justify-content: center;
+    padding: @spacing-xs;
+    position: absolute;
+    top: 35px;
+    transition: all @transition-fast;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    svg {
+        display: block;
+    }
+
+    &.lang-switcher {
+        right: 70px;
+
+        &:hover:not(:disabled) {
+            color: @primary-color;
+            transform: scale(1.1);
+        }
+    }
+
+    &.logout-button {
+        right: @spacing-lg;
+
+        &:hover:not(:disabled) {
+            color: @error-color;
+            transform: scale(1.1);
+        }
+    }
+}
+
+// Mobile floating action buttons
+.mobile-only {
+    display: block;
+}
+
+.floating-actions {
+    align-items: center;
+    display: flex;
+    flex-direction: column;
+    gap: @affix-button-gap;
+}
+
+.floating-btn {
+    align-items: center;
+    backdrop-filter: blur(10px);
+    background: @affix-button-bg;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: @border-radius-circle;
+    box-shadow: @affix-button-shadow;
+    cursor: pointer;
+    display: flex;
+    height: @affix-button-size;
+    justify-content: center;
+    transition: all @transition-fast;
+    width: @affix-button-size;
+
+    &:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    svg {
+        display: block;
+    }
+
+    &.lang-switcher {
+        color: @text-secondary;
+
+        &:hover:not(:disabled) {
+            background: @primary-color;
+            box-shadow: @affix-button-hover-shadow;
+            color: @background-white;
+            transform: scale(1.05);
+        }
+    }
+
+    &.logout-button {
+        color: @text-secondary;
+
+        &:hover:not(:disabled) {
+            background: @error-color;
+            box-shadow: @affix-button-hover-shadow;
+            color: @background-white;
+            transform: scale(1.05);
+        }
+    }
+}
+
+// Media query: Desktop (>=768px)
+@media (width >= 768px) {
+    .mobile-only {
+        display: none !important;
+    }
+
+    .desktop-btn {
+        display: flex;
+    }
+}
+
+.switch-container {
+    align-items: center;
+    display: flex;
+    gap: @spacing-md;
+    margin: @spacing-md 0;
+
+    .switch-label {
+        color: @text-primary;
+        font-size: @font-size-base;
+        font-weight: 500;
+        min-width: 150px;
+    }
+
+    .switch-status {
+        color: @text-secondary;
+        font-size: @font-size-small;
+        min-width: 60px;
+    }
+}
+</style>

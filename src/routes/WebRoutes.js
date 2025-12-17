@@ -565,11 +565,11 @@ class WebRoutes {
             const { browser, context } = await this.serverSystem.browserManager.launchBrowserForVNC({
                 args: [
                     `--window-size=${screenWidth},${screenHeight}`,
-                    "--start-fullscreen",  // 全屏模式
-                    "--kiosk",             // Kiosk 模式，移除所有UI
-                    "--no-first-run",      // 跳过首次运行提示
-                    "--disable-infobars",  // 禁用信息栏
-                    "--disable-session-crashed-bubble", // 禁用崩溃提示
+                    "--start-fullscreen",
+                    "--kiosk",
+                    "--no-first-run",
+                    "--disable-infobars",
+                    "--disable-session-crashed-bubble",
                 ], env: { DISPLAY: display },
                 isMobile,
                 viewport: { height: screenHeight, width: screenWidth },
@@ -584,10 +584,8 @@ class WebRoutes {
 
             const page = await context.newPage();
 
-            // 额外设置：确保页面视口完全匹配
             await page.setViewportSize({ height: screenHeight, width: screenWidth });
 
-            // 注入 CSS 来隐藏可能的滚动条，确保内容完美填充
             await page.addInitScript(`
                 (function() {
                     const style = document.createElement("style");

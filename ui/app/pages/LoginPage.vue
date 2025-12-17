@@ -61,13 +61,28 @@
 </template>
 
 <script setup>
-import { computed, watchEffect } from "vue";
+import { computed, onMounted, ref, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import I18n from "../utils/i18n";
-import "../styles/login.less";
 
 const route = useRoute();
-const t = I18n.t;
+
+// Create reactive version counter
+const langVersion = ref(0);
+
+// Listen for language changes
+const onLangChange = () => {
+    langVersion.value++;
+};
+
+onMounted(() => {
+    I18n.onChange(onLangChange);
+});
+
+const t = (key, options) => {
+    langVersion.value; // Access to track changes
+    return I18n.t(key, options);
+};
 
 const errorText = computed(() => {
     const code = String(route.query.error || "");
@@ -88,3 +103,93 @@ watchEffect(() => {
     document.title = t("loginTitle");
 });
 </script>
+
+<style lang="less" scoped>
+@import '../styles/variables.less';
+
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-content {
+    width: 300px;
+}
+
+form {
+    background: @background-white;
+    border-radius: @border-radius-lg;
+    box-shadow: @shadow-medium;
+    padding: @spacing-xl;
+    position: relative;
+    text-align: center;
+}
+
+input {
+    border: 1px solid @border-color;
+    border-radius: @border-radius-sm;
+    box-sizing: border-box;
+    margin-top: @spacing-sm;
+    padding: @spacing-sm;
+    transition: all @transition-normal;
+    width: 100%;
+
+    &:focus {
+        border-color: @primary-color;
+        box-shadow: @shadow-focus;
+        outline: none;
+    }
+}
+
+button {
+    align-items: center;
+    background-color: @primary-color;
+    border: none;
+    border-radius: @border-radius-sm;
+    box-sizing: border-box;
+    color: @background-white;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: @font-size-base;
+    justify-content: center;
+    line-height: 1.5;
+    margin-top: @spacing-lg;
+    min-height: @button-min-height;
+    padding: @spacing-sm;
+    width: 100%;
+}
+
+.error {
+    color: @error-color;
+    margin-bottom: 0;
+    margin-top: 25px;
+}
+
+.lang-switcher {
+    align-items: center;
+    background: transparent;
+    border: none;
+    color: @text-secondary;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    padding: @spacing-xs;
+    position: absolute;
+    right: @spacing-sm;
+    top: @spacing-sm;
+    transition: all @transition-fast;
+    width: auto;
+
+    &:hover {
+        color: @primary-color;
+        transform: scale(1.1);
+    }
+
+    svg {
+        display: block;
+    }
+}
+</style>
