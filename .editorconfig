@@ -17,19 +17,19 @@ indent_size = 4
 quote_type = double
 
 # Frontend JavaScript files (browser code)
-[{views/**/*.js}]
+[{ui/**/*.js}]
 indent_style = space
 indent_size = 4
 quote_type = single
 
 # HTML files
-[views/**/*.html]
+[ui/**/*.html]
 indent_style = space
 indent_size = 4
 quote_type = double
 
 # CSS files
-[views/**/*.css]
+[ui/**/*.css]
 indent_style = space
 indent_size = 4
 quote_type = single

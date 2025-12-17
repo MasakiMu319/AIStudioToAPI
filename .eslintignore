@@ -16,11 +16,12 @@ tmp/
 configs/
 
 # Templates (HTML files only, not JS/CSS)
-views/templates/*.html
+ui/templates/*.html
 
 # Build outputs
 dist/
 build/
+ui/dist/
 
 # Logs
 *.log

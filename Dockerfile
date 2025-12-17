@@ -69,15 +69,14 @@ RUN ARCH=$(uname -m) && \
 # Copy application source code with proper ownership
 # Layer is rebuilt when source code changes
 COPY --chown=node:node main.js ./
+COPY --chown=node:node vite.config.js ./
 COPY --chown=node:node src ./src
 COPY --chown=node:node configs ./configs
 COPY --chown=node:node scripts ./scripts
-COPY --chown=node:node views ./views
-COPY --chown=node:node public ./public
-COPY --chown=node:node locales ./locales
+COPY --chown=node:node ui ./ui
 
-# Build CSS files from LESS sources
-RUN npm run build:css
+# Build frontend assets with Vite
+RUN npm run build:ui
 
 # Remove dev dependencies after build to reduce image size
 RUN npm prune --omit=dev && npm cache clean --force

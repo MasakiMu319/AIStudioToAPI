@@ -13,7 +13,7 @@ const envFile = process.env.NODE_ENV === "production"
     : ".env.development";
 require("dotenv").config({ path: path.resolve(__dirname, envFile) });
 
-const ProxyServerSystem = require("./src/proxyServerSystem");
+const ProxyServerSystem = require("./src/core/ProxyServerSystem");
 
 /**
  * Initialize and start the server

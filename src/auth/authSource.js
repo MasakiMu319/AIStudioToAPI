@@ -1,5 +1,5 @@
 /**
- * File: src/auth/authSource.js
+ * File: src/auth/AuthSource.js
  * Description: Authentication source manager that loads and validates authentication data from config files
  *
  * Maintainers: iBenzene, bbbugg

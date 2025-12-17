@@ -13,11 +13,55 @@ module.exports = {
         ecmaVersion: "latest",
         sourceType: "module",
     },
-    plugins: ["sort-keys-fix", "jsonc"],
+    plugins: ["sort-keys-fix", "jsonc", "vue"],
     overrides: [
         {
+            // Vue Single File Components
+            files: ["ui/**/*.vue"],
+            extends: [
+                "eslint:recommended",
+                "plugin:vue/vue3-recommended",
+            ],
+            parser: "vue-eslint-parser",
+            parserOptions: {
+                ecmaVersion: "latest",
+                sourceType: "module",
+            },
+            rules: {
+                // Vue-specific rules
+                "vue/html-indent": ["error", 4],
+                "vue/script-indent": ["error", 4, { baseIndent: 0, switchCase: 1 }],
+                "vue/max-attributes-per-line": ["error", {
+                    singleline: 3,
+                    multiline: 1,
+                }],
+                "vue/first-attribute-linebreak": ["error", {
+                    singleline: "ignore",
+                    multiline: "below",
+                }],
+                "vue/html-closing-bracket-newline": ["error", {
+                    singleline: "never",
+                    multiline: "always",
+                }],
+                "vue/component-name-in-template-casing": ["error", "PascalCase"],
+                "vue/component-definition-name-casing": ["error", "PascalCase"],
+                // Allow single-word component names for pages
+                "vue/multi-word-component-names": "off",
+                // Inherit JavaScript rules
+                "quotes": ["error", "double", { avoidEscape: true, allowTemplateLiterals: true }],
+                "semi": ["error", "always"],
+                "comma-dangle": ["error", {
+                    arrays: "always-multiline",
+                    objects: "always-multiline",
+                    imports: "never",
+                    exports: "never",
+                    functions: "never",
+                }],
+            },
+        },
+        {
             // JSON files in locales directory - enforce sorted keys
-            files: ["locales/*.json"],
+            files: ["ui/locales/*.json"],
             extends: ["plugin:jsonc/recommended-with-json"],
             parser: "jsonc-eslint-parser",
             rules: {
@@ -43,7 +87,7 @@ module.exports = {
         },
         {
             // Frontend JavaScript files - enforce single quotes
-            files: ["views/**/*.js"],
+            files: ["ui/**/*.js"],
             env: {
                 browser: true,
                 es2021: true,
