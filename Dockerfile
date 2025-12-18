@@ -3,11 +3,12 @@ FROM node:24-slim
 
 WORKDIR /app
 
-# Install system dependencies required for Playwright/Camoufox browser and VNC
+# Install system dependencies required for Playwright/Camoufox browser, VNC, and dev tools (git)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     curl \
     unzip \
+    git \
     libasound2 \
     libatk-bridge2.0-0 \
     libatk1.0-0 \

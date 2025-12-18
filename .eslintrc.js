@@ -8,7 +8,10 @@ module.exports = {
         node: true,
         es2021: true,
     },
-    extends: "eslint:recommended",
+    extends: [
+        "eslint:recommended",
+        "plugin:prettier/recommended", // Enables eslint-plugin-prettier and eslint-config-prettier
+    ],
     parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
@@ -16,11 +19,19 @@ module.exports = {
     plugins: ["sort-keys-fix", "jsonc", "vue"],
     overrides: [
         {
+            // Configuration files - exempt from object key sorting
+            files: [".eslintrc.js", ".prettierrc.js", ".stylelintrc.js", "*.config.js"],
+            rules: {
+                "sort-keys-fix/sort-keys-fix": "off",
+            },
+        },
+        {
             // Vue Single File Components
             files: ["ui/**/*.vue"],
             extends: [
                 "eslint:recommended",
                 "plugin:vue/vue3-recommended",
+                "plugin:prettier/recommended", // Must be last
             ],
             parser: "vue-eslint-parser",
             parserOptions: {
@@ -28,53 +39,89 @@ module.exports = {
                 sourceType: "module",
             },
             rules: {
-                // Vue-specific rules
-                "vue/html-indent": ["error", 4],
-                "vue/script-indent": ["error", 4, { baseIndent: 0, switchCase: 1 }],
-                "vue/max-attributes-per-line": ["error", {
-                    singleline: 3,
-                    multiline: 1,
-                }],
-                "vue/first-attribute-linebreak": ["error", {
-                    singleline: "ignore",
-                    multiline: "below",
-                }],
-                "vue/html-closing-bracket-newline": ["error", {
-                    singleline: "never",
-                    multiline: "always",
-                }],
+                // Vue-specific rules for component naming
                 "vue/component-name-in-template-casing": ["error", "PascalCase"],
                 "vue/component-definition-name-casing": ["error", "PascalCase"],
                 // Allow single-word component names for pages
                 "vue/multi-word-component-names": "off",
-                // Inherit JavaScript rules
-                "quotes": ["error", "double", { avoidEscape: true, allowTemplateLiterals: true }],
-                "semi": ["error", "always"],
-                "comma-dangle": ["error", {
-                    arrays: "always-multiline",
-                    objects: "always-multiline",
-                    imports: "never",
-                    exports: "never",
-                    functions: "never",
-                }],
+
+                // Disable Vue formatting rules (Prettier handles these)
+                "vue/html-indent": "off",
+                "vue/script-indent": "off",
+                "vue/max-attributes-per-line": "off",
+                "vue/first-attribute-linebreak": "off",
+                "vue/html-closing-bracket-newline": "off",
+                "vue/singleline-html-element-content-newline": "off",
+                "vue/multiline-html-element-content-newline": "off",
+                "vue/html-self-closing": "off",
             },
         },
         {
             // JSON files in locales directory - enforce sorted keys
             files: ["ui/locales/*.json"],
-            extends: ["plugin:jsonc/recommended-with-json"],
+            extends: [
+                "plugin:jsonc/recommended-with-json",
+                "plugin:prettier/recommended", // Must be last
+            ],
             parser: "jsonc-eslint-parser",
             rules: {
-                "jsonc/sort-keys": ["error", "asc", {
-                    caseSensitive: false,
-                    natural: true,
-                }],
+                "jsonc/sort-keys": [
+                    "error",
+                    "asc",
+                    {
+                        caseSensitive: false,
+                        natural: true,
+                    },
+                ],
                 "jsonc/indent": ["error", 4],
-                "jsonc/key-spacing": ["error", {
-                    beforeColon: false,
-                    afterColon: true,
-                }],
+                "jsonc/key-spacing": [
+                    "error",
+                    {
+                        beforeColon: false,
+                        afterColon: true,
+                    },
+                ],
                 "jsonc/comma-dangle": ["error", "never"],
+            },
+        },
+        {
+            // All JSON files - enforce 4-space indentation and sorting
+            files: ["**/*.json"],
+            extends: [
+                "plugin:jsonc/recommended-with-json",
+                "plugin:prettier/recommended", // Must be last
+            ],
+            parser: "jsonc-eslint-parser",
+            rules: {
+                "jsonc/indent": ["error", 4],
+                "jsonc/key-spacing": [
+                    "error",
+                    {
+                        beforeColon: false,
+                        afterColon: true,
+                    },
+                ],
+                "jsonc/comma-dangle": ["error", "never"],
+                // Sort keys in all JSON files except package.json (dependencies shouldn't be sorted)
+                "jsonc/sort-keys": [
+                    "error",
+                    "asc",
+                    {
+                        caseSensitive: false,
+                        natural: true,
+                        minKeys: 2,
+                    },
+                ],
+            },
+        },
+        {
+            // package.json, package-lock.json, nodemon.json - don't sort these files
+            files: ["package.json", "package-lock.json", "nodemon.json"],
+            extends: ["plugin:jsonc/recommended-with-json", "plugin:prettier/recommended"],
+            parser: "jsonc-eslint-parser",
+            rules: {
+                "jsonc/indent": ["error", 4],
+                "jsonc/sort-keys": "off", // Don't sort package.json, lock files, etc.
             },
         },
         {
@@ -93,147 +140,108 @@ module.exports = {
                 es2021: true,
             },
             globals: {
-                Vue: 'readonly',
-                ElementPlus: 'readonly',
-                toggleLanguage: 'readonly',
-                switchSpecificAccount: 'readonly',
-                updateContent: 'readonly',
-                handleLogout: 'readonly',
+                Vue: "readonly",
+                ElementPlus: "readonly",
+                toggleLanguage: "readonly",
+                switchSpecificAccount: "readonly",
+                updateContent: "readonly",
+                handleLogout: "readonly",
             },
             rules: {
-                'quotes': ['error', 'single', {
-                    avoidEscape: true,
-                    allowTemplateLiterals: true,
-                }],
-                'no-unused-vars': ['error', {
-                    vars: 'all',
-                    args: 'after-used',
-                    ignoreRestSiblings: true,
-                    varsIgnorePattern: '^(toggleLanguage|switchSpecificAccount|updateContent|handleLogout)$',
-                }],
+                quotes: [
+                    "error",
+                    "single",
+                    {
+                        avoidEscape: true,
+                        allowTemplateLiterals: true,
+                    },
+                ],
+                "no-unused-vars": [
+                    "error",
+                    {
+                        vars: "all",
+                        args: "after-used",
+                        ignoreRestSiblings: true,
+                        varsIgnorePattern: "^(toggleLanguage|switchSpecificAccount|updateContent|handleLogout)$",
+                    },
+                ],
             },
         },
     ],
     rules: {
-        // ==================== String Quoting ====================
-        // Enforce double quotes for consistency with current codebase
-        "quotes": ["error", "double", {
-            avoidEscape: true,
-            allowTemplateLiterals: true,
-        }],
-
-        // ==================== Arrow Functions ====================
-        // Omit parentheses for single-parameter arrow functions
-        "arrow-parens": ["error", "as-needed", {
-            requireForBlockBody: false,
-        }],
-
-        // ==================== Indentation ====================
-        // Enforce 4-space indentation throughout the project
-        "indent": ["error", 4, {
-            SwitchCase: 1,
-            VariableDeclarator: 1,
-            outerIIFEBody: 1,
-            MemberExpression: 1,
-            FunctionDeclaration: { parameters: 1, body: 1 },
-            FunctionExpression: { parameters: 1, body: 1 },
-            CallExpression: { arguments: 1 },
-            ArrayExpression: 1,
-            ObjectExpression: 1,
-            ImportDeclaration: 1,
-            flatTernaryExpressions: false,
-            ignoreComments: false,
-        }],
-
-        // ==================== Semicolons ====================
-        // Require semicolons at the end of statements
-        "semi": ["error", "always"],
-
-        // ==================== Trailing Commas ====================
-        // Require trailing commas in multiline object/array literals
-        "comma-dangle": ["error", {
-            arrays: "always-multiline",
-            objects: "always-multiline",
-            imports: "never",
-            exports: "never",
-            functions: "never",
-        }],
-
-        // ==================== Spacing ====================
-        // Enforce consistent spacing in objects and arrays
-        "object-curly-spacing": ["error", "always"],
-        "array-bracket-spacing": ["error", "never"],
-
-        // Enforce spacing around keywords and blocks
-        "keyword-spacing": ["error", { before: true, after: true }],
-        "space-before-blocks": ["error", "always"],
-
-        // Control spacing before function parentheses
-        "space-before-function-paren": ["error", {
-            anonymous: "always",
-            named: "never",
-            asyncArrow: "always",
-        }],
-
-        // Require spacing around infix operators
-        "space-infix-ops": "error",
-
-        // Disallow multiple empty lines
-        "no-multiple-empty-lines": ["error", { "max": 1 }],
-
         // ==================== Code Quality ====================
         // Warn about unused variables to prevent dead code
-        "no-unused-vars": ["error", {
-            vars: "all",
-            args: "after-used",
-            ignoreRestSiblings: true,
-        }],
+        "no-unused-vars": [
+            "error",
+            {
+                vars: "all",
+                args: "after-used",
+                ignoreRestSiblings: true,
+            },
+        ],
 
         // Allow console statements (project uses custom logger)
         "no-console": "off",
 
         // Disallow var declarations, prefer const/let
         "no-var": "error",
-        "prefer-const": ["error", {
-            destructuring: "any",
-            ignoreReadBeforeAssign: false,
-        }],
+        "prefer-const": [
+            "error",
+            {
+                destructuring: "any",
+                ignoreReadBeforeAssign: false,
+            },
+        ],
 
         // ==================== Code Style ====================
-        // Prefer concise arrow function syntax when possible
-        "arrow-body-style": ["warn", "as-needed"],
+        // Prefer arrow functions for callbacks
+        "prefer-arrow-callback": [
+            "error",
+            {
+                allowNamedFunctions: false,
+                allowUnboundThis: true,
+            },
+        ],
 
-        // Prefer object shorthand notation
-        "object-shorthand": ["warn", "always"],
+        // Prefer concise arrow function syntax when possible
+        "arrow-body-style": ["error", "as-needed"],
+
+        // Prefer object shorthand notation (which uses arrow functions for methods)
+        "object-shorthand": ["error", "always"],
 
         // Disallow padding within blocks
         "padded-blocks": ["error", "never"],
 
-        // Disallow trailing whitespace at the end of lines
-        "no-trailing-spaces": "error",
-
-        // Require newline at the end of files
-        "eol-last": ["error", "always"],
-
-        // Require operators to be placed before line breaks
-        "operator-linebreak": ["error", "before"],
-
-        // Require newlines between method chains (depth > 3)
-        "newline-per-chained-call": ["error", { ignoreChainWithDepth: 3 }],
-
-        // Maximum line length (disabled by default)
-        "max-len": ["off", {
-            code: 120,
-            tabWidth: 4,
-            ignoreComments: true,
-            ignoreUrls: true,
-            ignoreStrings: true,
-            ignoreTemplateLiterals: true,
-        }],
-
         // Enforce sorted object keys (fixable), run `npx eslint --fix .`
-        "sort-keys-fix/sort-keys-fix": ["error", "asc", {
-            caseSensitive: false, natural: true,
-        }],
+        // Exempt configuration files from sorting to maintain logical grouping
+        "sort-keys-fix/sort-keys-fix": [
+            "error",
+            "asc",
+            {
+                caseSensitive: false,
+                natural: true,
+            },
+        ],
+
+        // ==================== Disabled Rules (Prettier Handles These) ====================
+        // Formatting rules disabled because Prettier handles them better
+        // This prevents conflicts between ESLint and Prettier
+        indent: "off",
+        quotes: "off",
+        semi: "off",
+        "comma-dangle": "off",
+        "arrow-parens": "off",
+        "object-curly-spacing": "off",
+        "array-bracket-spacing": "off",
+        "keyword-spacing": "off",
+        "space-before-blocks": "off",
+        "space-before-function-paren": "off",
+        "space-infix-ops": "off",
+        "no-multiple-empty-lines": "off",
+        "no-trailing-spaces": "off",
+        "eol-last": "off",
+        "operator-linebreak": "off",
+        "newline-per-chained-call": "off",
+        "max-len": "off",
     },
 };

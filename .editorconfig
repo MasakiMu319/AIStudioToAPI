@@ -22,6 +22,11 @@ indent_style = space
 indent_size = 4
 quote_type = single
 
+# Vue files
+[ui/**/*.vue]
+indent_style = space
+indent_size = 4
+
 # HTML files
 [ui/**/*.html]
 indent_style = space
@@ -38,6 +43,11 @@ quote_type = single
 [*.json]
 indent_style = space
 indent_size = 2
+
+# JSON files in locales and configs directories - use 4 spaces
+[{ui/locales/*.json,configs/models.json}]
+indent_style = space
+indent_size = 4
 
 # Markdown files
 [*.md]
