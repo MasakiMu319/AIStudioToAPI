@@ -6,7 +6,7 @@
  * Original Author: Ellinav
  */
 
-const CreateAuth = require("../auth/createAuth");
+const CreateAuth = require("../auth/CreateAuth");
 
 /**
  * Auth Routes Manager

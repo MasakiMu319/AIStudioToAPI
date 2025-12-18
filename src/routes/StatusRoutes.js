@@ -1,5 +1,5 @@
 /**
- * File: src/routes/statusRoutes.js
+ * File: src/routes/StatusRoutes.js
  * Description: Status and system management routes
  *
  * Maintainers: iBenzene, bbbugg

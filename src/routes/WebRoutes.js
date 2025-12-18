@@ -1,5 +1,5 @@
 /**
- * File: src/routes/webRoutes.js
+ * File: src/routes/WebRoutes.js
  * Description: Web routes coordinator - delegates to specialized route handlers
  *
  * Maintainers: iBenzene, bbbugg
