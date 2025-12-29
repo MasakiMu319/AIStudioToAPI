@@ -161,9 +161,9 @@ sudo docker compose down
 
 此端点转发到官方 Gemini API 格式端点。
 
-- `GET /models`: 列出可用的 Gemini 模型。
-- `POST /models/{model_name}:generateContent`: 生成内容和图片。
-- `POST /models/{model_name}:streamGenerateContent`: 流式生成内容和图片，支持真流式和假流式。
+- `GET /v1beta/models`: 列出可用的 Gemini 模型。
+- `POST /v1beta/models/{model_name}:generateContent`: 生成内容和图片。
+- `POST /v1beta/models/{model_name}:streamGenerateContent`: 流式生成内容和图片，支持真流式和假流式。
 
 > 📖 详细的 API 使用示例请参阅：[API 使用示例文档](docs/zh/api-examples.md)
 

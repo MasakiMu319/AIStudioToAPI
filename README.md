@@ -161,9 +161,9 @@ This endpoint is processed and then forwarded to the official Gemini API format 
 
 This endpoint is forwarded to the official Gemini API format endpoint.
 
-- `GET /models`: List available Gemini models.
-- `POST /models/{model_name}:generateContent`: Generate content and images.
-- `POST /models/{model_name}:streamGenerateContent`: Stream content and image generation, supports real and fake streaming.
+- `GET /v1beta/models`: List available Gemini models.
+- `POST /v1beta/models/{model_name}:generateContent`: Generate content and images.
+- `POST /v1beta/models/{model_name}:streamGenerateContent`: Stream content and image generation, supports real and fake streaming.
 
 > 📖 For detailed API usage examples, see: [API Usage Examples](docs/en/api-examples.md)
 
