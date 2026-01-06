@@ -61,10 +61,70 @@ class VersionChecker {
     }
 
     /**
-     * Fetch latest version tag from GitHub
-     * @returns {Promise<{name: string, url: string} | null>}
+     * Check if Docker image exists on GHCR
+     * @param {string} tag - Tag to check
+     * @returns {Promise<boolean>}
      */
-    async fetchLatestTag() {
+    async checkDockerImageExists(tag) {
+        const image = "ibenzene/aistudio-to-api";
+        const registry = "ghcr.io";
+        const manifestUrl = `https://${registry}/v2/${image}/manifests/${tag}`;
+
+        try {
+            // 1. Try to fetch manifest (expecting 401 first)
+            try {
+                await axios.head(manifestUrl, { timeout: 5000 });
+                return true;
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    // Auth required, parse header
+                    const authHeader = error.response.headers["www-authenticate"];
+                    if (!authHeader) return false;
+
+                    const realmMatch = authHeader.match(/realm="([^"]+)"/);
+                    const serviceMatch = authHeader.match(/service="([^"]+)"/);
+                    const scopeMatch = authHeader.match(/scope="([^"]+)"/);
+
+                    if (!realmMatch || !serviceMatch) return false;
+
+                    const realm = realmMatch[1];
+                    const service = serviceMatch[1];
+                    const scope = scopeMatch ? scopeMatch[1] : `repository:${image}:pull`;
+
+                    // Get token
+                    const tokenResponse = await axios.get(realm, {
+                        params: { scope, service },
+                        timeout: 5000,
+                    });
+                    const token = tokenResponse.data.token;
+
+                    // Retry with token
+                    const res = await axios.head(manifestUrl, {
+                        headers: { Authorization: `Bearer ${token}` },
+                        timeout: 5000,
+                    });
+
+                    return res.status === 200;
+                } else if (error.response && error.response.status === 404) {
+                    return false;
+                }
+                throw error; // Other errors
+            }
+        } catch (error) {
+            this.logger?.warn(`[VersionChecker] Failed to check Docker image for ${tag}: ${error.message}`);
+            return false;
+        }
+    }
+
+    /**
+     * Check for updates
+     * @returns {Promise<object>}
+     */
+    /**
+     * Fetch all version tags from GitHub
+     * @returns {Promise<Array<{name: string, url: string}>>}
+     */
+    async fetchTags() {
         try {
             const response = await axios.get(`https://api.github.com/repos/${this.repoOwner}/${this.repoName}/tags`, {
                 headers: {
@@ -79,21 +139,16 @@ class VersionChecker {
             // Filter: only v* tags, exclude preview-*
             const versionTags = tags.filter(tag => tag.name.startsWith("v") && !tag.name.includes("preview"));
 
-            if (versionTags.length === 0) {
-                return null;
-            }
-
             // Sort by version (descending)
             versionTags.sort((a, b) => this.compareVersions(b.name, a.name));
 
-            const latest = versionTags[0];
-            return {
-                name: latest.name,
-                url: `https://github.com/${this.repoOwner}/${this.repoName}/releases/tag/${latest.name}`,
-            };
+            return versionTags.map(tag => ({
+                name: tag.name,
+                url: `https://github.com/${this.repoOwner}/${this.repoName}/releases/tag/${tag.name}`,
+            }));
         } catch (error) {
             this.logger?.warn(`[VersionChecker] Failed to fetch tags: ${error.message}`);
-            return null;
+            return [];
         }
     }
 
@@ -103,29 +158,62 @@ class VersionChecker {
      */
     async checkForUpdates() {
         const current = this.getCurrentVersion();
-        const latest = await this.fetchLatestTag();
+        const allTags = await this.fetchTags();
 
-        if (!latest) {
+        if (allTags.length === 0) {
             return {
                 current,
-                error: "Unable to fetch latest version",
+                error: "Unable to fetch tags",
                 hasUpdate: false,
                 latest: null,
                 releaseUrl: null,
             };
         }
 
-        const hasUpdate = this.compareVersions(latest.name, current) > 0;
+        // Filter tags that are strictly newer than current
+        const newerTags = allTags.filter(tag => this.compareVersions(tag.name, current) > 0);
 
-        if (hasUpdate) {
-            this.logger?.info(`[VersionChecker] New version available: ${latest.name} (current: ${current})`);
+        if (newerTags.length === 0) {
+            return {
+                current,
+                hasUpdate: false,
+                latest: current,
+                releaseUrl: null,
+            };
         }
+
+        this.logger?.debug(
+            `[VersionChecker] Found ${newerTags.length} newer tags. Checking Docker image availability...`
+        );
+
+        // Iterate through newer tags to find the first one with an available Docker image
+        for (const tagInfo of newerTags) {
+            const imageExists = await this.checkDockerImageExists(tagInfo.name);
+
+            if (imageExists) {
+                this.logger?.info(
+                    `[VersionChecker] New version available and Docker image ready: ${tagInfo.name} (current: ${current})`
+                );
+                return {
+                    current,
+                    hasUpdate: true,
+                    latest: tagInfo.name,
+                    releaseUrl: tagInfo.url,
+                };
+            }
+
+            this.logger?.debug(
+                `[VersionChecker] Tag ${tagInfo.name} exists but Docker image is not yet available. Checking next...`
+            );
+        }
+
+        this.logger?.debug(`[VersionChecker] No newer versions have available Docker images yet.`);
 
         return {
             current,
-            hasUpdate,
-            latest: latest.name,
-            releaseUrl: latest.url,
+            hasUpdate: false,
+            latest: current,
+            releaseUrl: null,
         };
     }
 }
